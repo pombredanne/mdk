@@ -141,7 +141,7 @@ namespace mdk_tracing {
 
             LogEvent evt = new LogEvent();
             evt.context = ctx;
-            evt.timestamp = now();
+            evt.timestamp = Context.runtime().now();
             evt.node = procUUID;
             evt.level = level;
             evt.category = category;
@@ -156,7 +156,7 @@ namespace mdk_tracing {
 
             logger.info("Polling for logs...");
 
-            long rightNow = now();
+            long rightNow = Context.runtime().now();
             Promise result = query(lastPoll, rightNow);
             lastPoll = rightNow;
             return result.andThen(bind(self, "deresultify", []));
@@ -262,7 +262,7 @@ namespace mdk_tracing {
                  then all recorded events since the startTime will be
                  returned.
             """)
-            long endTime = now();
+            long endTime = Context.runtime().now();
 
             // TODO: concept of pagination and page size will likely be necessary before long.
             //@doc("Return the next page of results.")

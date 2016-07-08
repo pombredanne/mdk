@@ -434,7 +434,7 @@ namespace mdk_protocol {
               do that.
             */
 
-            long rightNow = now();
+            long rightNow = Context.runtime().now();
             long heartbeatInterval = ((ttl/2.0)*1000.0).round();
             long reconnectInterval = (reconnectDelay*1000.0).round();
 
@@ -462,12 +462,12 @@ namespace mdk_protocol {
 
         void doOpen() {
             open(url());
-            lastConnectAttempt = now();
+            lastConnectAttempt = Context.runtime().now();
         }
 
         void doHeartbeat() {
             heartbeat();
-            lastHeartbeat = now();
+            lastHeartbeat = Context.runtime().now();
         }
 
         void open(String url) {

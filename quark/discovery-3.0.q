@@ -1,6 +1,6 @@
 quark 1.0;
 
-package datawire_mdk_discovery 3.0.0;
+package datawire_mdk_discovery 3.1.0;
 
 use util-1.0.q;
 include discovery-protocol-3.0.q;
@@ -98,7 +98,7 @@ namespace mdk_discovery {
         bool available() {
             if (_failed) {
                 _mutex.acquire();
-                bool result = now() - _lastFailure > _delay;
+                bool result = Context.runtime().now() - _lastFailure > _delay;
                 _mutex.release();
                 if (result) {
                     _log.info("BREAKER RETEST: " + _node.toString());
