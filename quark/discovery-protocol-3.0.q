@@ -13,9 +13,11 @@ namespace mdk_discovery {
             static Logger dlog = new Logger("discovery");
 
             Discovery disco;
+            long _lastHeartbeatReceived;
 
             DiscoClient(Discovery discovery) {
                 disco = discovery;
+                _lastHeartbeatReceived = Context.runtime().now();
             }
 
             String url() {
@@ -64,11 +66,13 @@ namespace mdk_discovery {
             }
 
             void onActive(Active active) {
+                _lastHeartbeatReceived = Context.runtime().now();
                 // Stick the node in the available set.
                 disco._active(active.node);
             }
 
             void onExpire(Expire expire) {
+                _lastHeartbeatReceived = Context.runtime().now();
                 // Remove the node from our available set.
 
                 // hmm, we could make all Node objects we hand out be
@@ -81,6 +85,10 @@ namespace mdk_discovery {
 
             void onClear(Clear reset) {
                 // ???
+            }
+
+            void onHeartbeat(Heartbeat heartbeat) {
+                _lastHeartbeatReceived = Context.runtime().now();
             }
 
             void startup() {
@@ -129,12 +137,18 @@ namespace mdk_discovery {
                 // disco.mutex.release();
             }
 
+            void pump() {
+                if (self._lastHeartbeatReceived < Context.runtime().now() - 30L * (self.ttl*000.0).round()) {
+                    self.sock.close();
+                }
+            }
         }
 
         interface DiscoHandler extends ProtocolHandler {
             void onActive(Active active);
             void onExpire(Expire expire);
             void onClear(Clear reset);
+            void onHeartbeat(Heartbeat heartbeat);
         }
 
         class DiscoveryEvent extends ProtocolEvent {
@@ -145,6 +159,7 @@ namespace mdk_discovery {
                 if (Active._discriminator.matches(type)) { return new Active(); }
                 if (Expire._discriminator.matches(type)) { return new Expire(); }
                 if (Clear._discriminator.matches(type)) { return new Clear(); }
+                if (Heartbeat._discriminator.matches(type)) { return new Heartbeat(); }
                 return null;
             }
 
@@ -159,12 +174,21 @@ namespace mdk_discovery {
             void dispatchDiscoveryEvent(DiscoHandler handler);
         }
 
-        /*@doc("""
+        @doc("Heartbeat from the server.")
+        class Heartbeat extends DiscoveryEvent {
+            static Discriminator _discriminator = anyof(["heartbeat", "discovery.protocol.Heartbeat"]);
+
+            void dispatchDiscoveryEvent(DiscoHandler handler) {
+                handler.onHeartbeat(self);
+            }
+        }
+
+        @doc("""
           Advertise a node as being active. This can be used to register a
           new node or to heartbeat an existing node. The receiver must
           consider the node to be available for the duration of the
           specified ttl.
-          """)*/
+          """)
         class Active extends DiscoveryEvent {
 
             static Discriminator _discriminator = anyof(["active", "discovery.protocol.Active"]);

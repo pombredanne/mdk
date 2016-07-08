@@ -396,6 +396,37 @@ class DiscoveryTest extends MockRuntimeTest {
         // ...
     }
 
+    // We expect a heartbeat from the server; lacking any messages, disconnect.
+    void testDisconnectIfNoReceivedMessages() {
+        Discovery disco = new Discovery().connect();
+        SocketEvent sev = startDisco(disco);
+        self.mock.advanceClock(30L * 1000L);
+        self.pump();
+        checkEqual(true, sev.sock.closed);
+    }
+
+    // If we do receive a message (e.g. heartbeat) delay disconnection.
+    void testReceivedMessagesDelayDisconnect() {
+        Discovery disco = new Discovery().connect();
+        SocketEvent sev = startDisco(disco);
+        self.mock.advanceClock(15L * 1000L);
+        sev.send(new Heartbeat().encode());
+        self.pump();
+        checkEqual(false, sev.sock.closed);
+        self.mock.advanceClock(30L * 1000L);
+        sev.send(new Heartbeat().encode());
+        self.pump();
+        checkEqual(false, sev.sock.closed);
+        self.mock.advanceClock(30L * 1000L);
+        sev.send(new Heartbeat().encode());
+        self.pump();
+        checkEqual(false, sev.sock.closed);
+        // This time, no heartbeat:
+        self.mock.advanceClock(30L * 1000L);
+        self.pump();
+        checkEqual(true, sev.sock.closed);
+    }
+
     // Unexpected messages are ignored.
     void testUnexpectedMessage() {
         Discovery disco = new Discovery().connect();
