@@ -1,14 +1,14 @@
 quark 1.0;
 
-package datawire_mdk 2.0.3;
+package datawire_mdk 2.0.12;
 
 // DATAWIRE MDK
 
-use discovery-3.0.q;
-use tracing-2.0.q;
-use introspection-1.0.q;
-use util-1.0.q;
-use mdk_runtime.q;
+include mdk_runtime.q;
+include util-1.0.q;
+include introspection-1.0.q;
+include discovery-3.0.q;
+include tracing-2.0.q;
 
 import mdk_discovery;
 import mdk_tracing;
@@ -247,7 +247,8 @@ namespace mdk {
 
     class MDKImpl extends MDK {
 
-        static Logger logger = new Logger("mdk");
+        Logger logger = new Logger("mdk");
+        Map<String,Object> _reflection_hack = null;
 
         MDKRuntime _runtime;
         Discovery _disco;
@@ -276,6 +277,7 @@ namespace mdk {
         }
 
         MDKImpl(MDKRuntime runtime) {
+            _reflection_hack = new Map<String,Object>();
             _runtime = runtime;
             if (!runtime.dependencies.hasService("failurepolicy_factory")) {
                 runtime.dependencies.registerService("failurepolicy_factory",

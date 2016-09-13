@@ -1,7 +1,5 @@
 quark 1.0;
 
-use mdk_runtime.q;
-
 import mdk_discovery;
 import mdk_runtime;
 import mdk_runtime.actors;
@@ -22,7 +20,7 @@ namespace synapse {
         m.start()
 
     All resulting Node instances will have version '1.0' hardcoded, and an
-    address of the form '<host>:<port>'.
+    address of the form 'host:port'.
 
     The original object from Synpase will be attached as the Node's properties.
     """)
